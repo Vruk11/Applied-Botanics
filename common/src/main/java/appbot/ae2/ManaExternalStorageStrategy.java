@@ -51,11 +51,32 @@ public class ManaExternalStorageStrategy implements ExternalStorageStrategy {
                 return 0;
             }
 
-            var inserted = (int) Math.min(amount,
-                    ManaHelper.getCapacity(receiver) - receiver.getCurrentMana());
+            if(receiver.isFull()) {
+                return 0;
+            }
 
-            if (inserted > 0 && mode == Actionable.MODULATE) {
-                receiver.receiveMana(inserted);
+            var prevMana = receiver.getCurrentMana();
+
+            receiver.receiveMana((int) amount);
+
+            /*var inserted = (int) Math.min(amount,
+                    ManaHelper.getCapacity(receiver) - receiver.getCurrentMana());*/
+
+            var inserted = Math.abs(receiver.getCurrentMana() - prevMana);
+
+            // This is to prevent ManaReceivers that have a constant capacity from
+            // either duping (mana splitter) or causing other unintended issues with mana
+            if(inserted == 0) {
+                inserted = (int) amount;
+            }
+
+            // This COULD be an issue if a ManaReceiver isn't able to reverse
+            // the process of putting in mana. Perhaps a config to disable mana
+            // input/output for specific blocks?
+            if(mode != Actionable.MODULATE) {
+                receiver.receiveMana(-inserted);
+            }
+            else {
                 injectOrExtractCallback.run();
             }
 

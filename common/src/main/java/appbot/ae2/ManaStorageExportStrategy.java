@@ -4,6 +4,9 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 
+import com.google.common.primitives.Ints;
+
+import appbot.AppbotConfig;
 import appbot.AppliedBotanics;
 import appbot.Lookup;
 import vazkii.botania.api.mana.ManaReceiver;
@@ -11,8 +14,11 @@ import vazkii.botania.api.mana.ManaReceiver;
 import appeng.api.behaviors.StackExportStrategy;
 import appeng.api.behaviors.StackTransferContext;
 import appeng.api.config.Actionable;
+import appeng.api.config.PowerMultiplier;
+import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKey;
 import appeng.api.storage.StorageHelper;
+import appeng.core.stats.AeStats;
 
 @SuppressWarnings("UnstableApiUsage")
 public class ManaStorageExportStrategy implements StackExportStrategy {
@@ -39,17 +45,55 @@ public class ManaStorageExportStrategy implements StackExportStrategy {
             return 0;
         }
 
-        var insertable = (int) Math.min(amount,
-                ManaHelper.getCapacity(receiver) - receiver.getCurrentMana());
-        var extracted = (int) StorageHelper.poweredExtraction(context.getEnergySource(),
-                context.getInternalStorage().getInventory(), ManaKey.KEY, insertable, context.getActionSource(),
-                Actionable.MODULATE);
-
-        if (extracted > 0) {
-            receiver.receiveMana(extracted);
+        if(receiver.isFull()) {
+            return 0;
         }
 
-        return extracted;
+        //var insertable = (int) amount;
+        /*var testExtracted = (int) StorageHelper.poweredExtraction(context.getEnergySource(),
+                context.getInternalStorage().getInventory(), ManaKey.KEY, insertable, context.getActionSource(),
+                Actionable.SIMULATE);*/
+                
+        //Extracted the above function and modified it below
+
+        var energy = context.getEnergySource();
+        var inv = context.getInternalStorage().getInventory();
+        var request = ManaKey.KEY;
+        var src = context.getActionSource();
+        
+        // Get actually available system mana
+        var retrieved = inv.extract(request, amount, Actionable.SIMULATE, src);
+
+        // Save previous endpoint mana
+        var prevMana = receiver.getCurrentMana();
+
+        // Put available mana in endpoint
+        receiver.receiveMana((int) retrieved);
+
+        // Compare endpoint's old mana and new mana to get the desired system mana
+        var desiredMana = Math.abs(receiver.getCurrentMana() - prevMana);
+
+        // This is to prevent ManaReceivers that have a constant capacity from
+        // either duping (mana splitter) or causing other unintended issues with mana
+        if(desiredMana == 0) {
+            desiredMana = (int) retrieved;
+        }
+
+        // Below is mostly copy pasted from the previously mentioned function up above.
+        
+        var energyFactor = Math.max(1.0, request.getAmountPerOperation());
+        var availablePower = energy.extractAEPower(desiredMana / energyFactor, Actionable.SIMULATE,
+                PowerMultiplier.CONFIG);
+        var itemToExtract = Math.min((long) (availablePower * energyFactor + 0.9), desiredMana);
+
+        if (itemToExtract <= 0) {
+            return 0;
+        }
+
+        energy.extractAEPower(desiredMana / energyFactor, Actionable.MODULATE, PowerMultiplier.CONFIG);
+        var ret = inv.extract(request, itemToExtract, Actionable.MODULATE, src);
+
+        return ret;
     }
 
     @Override
@@ -64,10 +108,30 @@ public class ManaStorageExportStrategy implements StackExportStrategy {
             return 0;
         }
 
-        var inserted = (int) Math.min(amount, ManaHelper.getCapacity(receiver) - receiver.getCurrentMana());
+        if (receiver.isFull()) {
+            return 0;
+        }
 
-        if (inserted > 0 && mode == Actionable.MODULATE) {
-            receiver.receiveMana(inserted);
+        var prevMana = receiver.getCurrentMana();
+
+        receiver.receiveMana((int) amount);
+
+        /*var inserted = (int) Math.min(amount,
+                ManaHelper.getCapacity(receiver) - receiver.getCurrentMana());*/
+
+        var inserted = Math.abs(receiver.getCurrentMana() - prevMana);
+
+        // This is to prevent ManaReceivers that have a constant capacity from
+        // either duping (mana splitter) or causing other unintended issues with mana
+        if(inserted == 0) {
+            inserted = (int) inserted;
+        }
+
+        // This COULD be an issue if a ManaReceiver isn't able to reverse
+        // the process of putting in mana. Perhaps a config to disable mana
+        // input/output for specific blocks
+        if (mode == Actionable.SIMULATE) {
+            receiver.receiveMana(-inserted);
         }
 
         return inserted;

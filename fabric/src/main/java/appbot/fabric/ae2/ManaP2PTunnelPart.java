@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.google.common.base.Predicates;
 
@@ -66,16 +67,21 @@ public class ManaP2PTunnelPart extends CapabilityP2PTunnelPart<ManaP2PTunnelPart
 
         @Override
         public int getAvailableSpaceForMana() {
-            var space = 0;
+            //var space = 0;
 
             for (var output : getOutputs()) {
                 try (var guard = output.getAdjacentCapability()) {
                     var receiver = guard.get();
-                    space += ManaHelper.getCapacity(receiver);
+                    //space += ManaHelper.getCapacity(receiver);
+                    if(!receiver.isFull()) {
+                        // This is fine because the spark system already voids extra mana usually
+                        // and it won't run this function when the endpoints are marked as full
+                        return Integer.MAX_VALUE;
+                    }
                 }
             }
 
-            return space;
+            return 0;
         }
 
         @Override
@@ -194,12 +200,11 @@ public class ManaP2PTunnelPart extends CapabilityP2PTunnelPart<ManaP2PTunnelPart
         @Override
         public int getMaxMana() {
             return getOutputStream()
-                    .map(part -> {
+                    .anyMatch(part -> {
                         try (var guard = part.getAdjacentCapability()) {
-                            return ManaHelper.getCapacity(guard.get());
+                            return !guard.get().isFull();
                         }
-                    })
-                    .reduce(0, Integer::sum);
+                    }) ? Integer.MAX_VALUE : 0;
         }
 
         @Override

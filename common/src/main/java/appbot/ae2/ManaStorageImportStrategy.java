@@ -48,30 +48,18 @@ public class ManaStorageImportStrategy implements StackImportStrategy {
 
         var amount = (int) Math.min(remainingTransferAmount, receiver.getCurrentMana());
 
-        if (amount > 0) {
-            receiver.receiveMana(-amount);
+        if(amount <= 0) {
+            return false;
         }
 
         var inserted = (int) inv.getInventory().insert(ManaKey.KEY, amount, Actionable.MODULATE,
                 context.getActionSource());
 
-        if (inserted < amount) {
-            var leftover = amount - inserted;
-            var backfill = Math.min(leftover,
-                    ManaHelper.getCapacity(receiver) - receiver.getCurrentMana());
-
-            if (backfill > 0) {
-                receiver.receiveMana(backfill);
-            }
-
-            if (leftover > backfill) {
-                LOGGER.error("Storage import issue, voided {} mana", leftover - backfill);
-            }
-        }
+        receiver.receiveMana(-inserted);
 
         var opsUsed = Math.max(1, inserted / ManaKeyType.TYPE.getAmountPerOperation());
         context.reduceOperationsRemaining(opsUsed);
 
-        return amount > 0;
+        return true;
     }
 }
