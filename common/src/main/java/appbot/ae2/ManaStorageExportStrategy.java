@@ -4,9 +4,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 
-import com.google.common.primitives.Ints;
-
-import appbot.AppbotConfig;
 import appbot.AppliedBotanics;
 import appbot.Lookup;
 import vazkii.botania.api.mana.ManaReceiver;
@@ -15,10 +12,7 @@ import appeng.api.behaviors.StackExportStrategy;
 import appeng.api.behaviors.StackTransferContext;
 import appeng.api.config.Actionable;
 import appeng.api.config.PowerMultiplier;
-import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKey;
-import appeng.api.storage.StorageHelper;
-import appeng.core.stats.AeStats;
 
 @SuppressWarnings("UnstableApiUsage")
 public class ManaStorageExportStrategy implements StackExportStrategy {
