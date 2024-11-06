@@ -5,7 +5,7 @@ import org.jetbrains.annotations.Nullable;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-
+import appbot.AppbotConfig;
 import appbot.AppliedBotanics;
 
 import appeng.api.stacks.AEKey;
@@ -35,7 +35,7 @@ public class ManaKeyType extends AEKeyType {
 
     @Override
     public int getAmountPerOperation() {
-        return 500;
+        return AppbotConfig.CommonConfig.manaPerOperation();
     }
 
     @Override

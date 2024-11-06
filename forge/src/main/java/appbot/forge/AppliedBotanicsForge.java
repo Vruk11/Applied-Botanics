@@ -43,6 +43,9 @@ import appeng.parts.automation.StackWorldBehaviors;
 public class AppliedBotanicsForge {
 
     public AppliedBotanicsForge() {
+
+        AppbotConfigForge.setup();
+
         var bus = FMLJavaModLoadingContext.get().getModEventBus();
 
         ABBlocks.initialize(bus);
