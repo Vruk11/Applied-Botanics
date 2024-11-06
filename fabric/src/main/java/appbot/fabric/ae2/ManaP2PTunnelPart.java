@@ -18,7 +18,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 
 import appbot.AppliedBotanics;
-import appbot.ae2.ManaHelper;
 import vazkii.botania.api.BotaniaFabricCapabilities;
 import vazkii.botania.api.mana.ManaPool;
 import vazkii.botania.api.mana.ManaReceiver;
