@@ -164,7 +164,7 @@ public class ManaP2PTunnelPart extends CapabilityP2PTunnelPart<ManaP2PTunnelPart
 
             Collections.shuffle(outputs);
 
-            queueTunnelDrain(PowerUnits.AE, mana / 100D);
+            queueTunnelDrain(PowerUnits.AE, Math.abs(mana) / 100D);
             var manaForEach = mana / outputs.size();
             var spill = mana % outputs.size();
 
