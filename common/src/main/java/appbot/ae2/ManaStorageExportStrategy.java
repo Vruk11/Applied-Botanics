@@ -39,22 +39,24 @@ public class ManaStorageExportStrategy implements StackExportStrategy {
             return 0;
         }
 
-        if(receiver.isFull()) {
+        if (receiver.isFull()) {
             return 0;
         }
 
-        //var insertable = (int) amount;
-        /*var testExtracted = (int) StorageHelper.poweredExtraction(context.getEnergySource(),
-                context.getInternalStorage().getInventory(), ManaKey.KEY, insertable, context.getActionSource(),
-                Actionable.SIMULATE);*/
-                
-        //Extracted the above function and modified it below
+        // var insertable = (int) amount;
+        /*
+         * var testExtracted = (int) StorageHelper.poweredExtraction(context.getEnergySource(),
+         * context.getInternalStorage().getInventory(), ManaKey.KEY, insertable, context.getActionSource(),
+         * Actionable.SIMULATE);
+         */
+
+        // Extracted the above function and modified it below
 
         var energy = context.getEnergySource();
         var inv = context.getInternalStorage().getInventory();
         var request = ManaKey.KEY;
         var src = context.getActionSource();
-        
+
         // Get actually available system mana
         var retrieved = inv.extract(request, amount, Actionable.SIMULATE, src);
 
@@ -69,12 +71,12 @@ public class ManaStorageExportStrategy implements StackExportStrategy {
 
         // This is to prevent ManaReceivers that have a constant capacity from
         // either duping (mana splitter) or causing other unintended issues with mana
-        if(desiredMana == 0) {
+        if (desiredMana == 0) {
             desiredMana = (int) retrieved;
         }
 
         // Below is mostly copy pasted from the previously mentioned function up above.
-        
+
         var energyFactor = Math.max(1.0, request.getAmountPerOperation());
         var availablePower = energy.extractAEPower(desiredMana / energyFactor, Actionable.SIMULATE,
                 PowerMultiplier.CONFIG);
@@ -110,14 +112,15 @@ public class ManaStorageExportStrategy implements StackExportStrategy {
 
         receiver.receiveMana((int) amount);
 
-        /*var inserted = (int) Math.min(amount,
-                ManaHelper.getCapacity(receiver) - receiver.getCurrentMana());*/
+        /*
+         * var inserted = (int) Math.min(amount, ManaHelper.getCapacity(receiver) - receiver.getCurrentMana());
+         */
 
         var inserted = Math.abs(receiver.getCurrentMana() - prevMana);
 
         // This is to prevent ManaReceivers that have a constant capacity from
         // either duping (mana splitter) or causing other unintended issues with mana
-        if(inserted == 0) {
+        if (inserted == 0) {
             inserted = (int) inserted;
         }
 

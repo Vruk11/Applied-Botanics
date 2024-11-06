@@ -48,7 +48,7 @@ public class ManaStorageImportStrategy implements StackImportStrategy {
 
         var amount = (int) Math.min(remainingTransferAmount, receiver.getCurrentMana());
 
-        if(amount <= 0) {
+        if (amount <= 0) {
             return false;
         }
 
